@@ -1,0 +1,87 @@
+# Digital Twin Factory - full stack
+#
+#   cp .env.example .env              # set the passwords
+#   deploy/mosquitto/make-passwords.sh <backend-pw> <device-m01-pw> <simulator-pw>
+#   docker compose up -d --build
+#   docker compose --profile demo up -d simulator     # optional: virtual machines 2-4
+#
+# Dashboard: http://localhost:8080
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: digital_twin_factory
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d digital_twin_factory"]
+      interval: 5s
+      retries: 10
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    restart: unless-stopped
+    ports:
+      - "1883:1883"          # edge devices connect here (add TLS on 8883 for production)
+    volumes:
+      - ./deploy/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./deploy/mosquitto/passwd:/mosquitto/config/passwd:ro
+      - ./deploy/mosquitto/acl:/mosquitto/config/acl:ro
+      - mosquitto-data:/mosquitto/data
+
+  api:
+    build: { context: ., dockerfile: backend/Dockerfile }
+    restart: unless-stopped
+    environment: &backend-env
+      DB_HOST: postgres
+      DB_NAME: digital_twin_factory
+      DB_USER: postgres
+      DB_PASSWORD: ${DB_PASSWORD}
+      MQTT_BROKER: mosquitto
+      MQTT_USERNAME: backend
+      MQTT_PASSWORD: ${MQTT_BACKEND_PASSWORD:?set MQTT_BACKEND_PASSWORD in .env}
+      API_KEY: ${API_KEY:-}
+      RETENTION_DAYS: ${RETENTION_DAYS:-30}
+      STALE_AFTER_SECONDS: ${STALE_AFTER_SECONDS:-15}
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  subscriber:
+    build: { context: ., dockerfile: backend/Dockerfile }
+    restart: unless-stopped
+    command: ["python", "mqtt_subscriber.py"]
+    environment: *backend-env
+    depends_on:
+      postgres: { condition: service_healthy }
+      mosquitto: { condition: service_started }
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_KEY: ${API_KEY:-}
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on: [api]
+
+  simulator:                 # demo only: virtual machines M02-M04
+    profiles: ["demo"]
+    build: { context: ., dockerfile: backend/Dockerfile }
+    working_dir: /app/simulator
+    command: ["python", "simulator.py"]
+    environment:
+      MQTT_BROKER: mosquitto
+      MQTT_USERNAME: simulator
+      MQTT_PASSWORD: ${MQTT_SIMULATOR_PASSWORD:?set MQTT_SIMULATOR_PASSWORD in .env}
+    depends_on: [mosquitto]
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  mosquitto-data:

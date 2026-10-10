@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "author": "YADAGIRI SWAJITH",
+  "editor": "wokwi",
+
+  "parts": [
+    {
+      "type": "board-esp32-devkit-c-v4",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-dht22",
+      "id": "dht1",
+      "top": -100,
+      "left": 250,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-mpu6050",
+      "id": "imu1",
+      "top": 100,
+      "left": 250,
+      "attrs": {}
+    },
+    {
+      "type": "board-bmp180",
+      "id": "bmp1",
+      "top": -100,
+      "left": 100,
+      "attrs": {}
+    }
+  ],
+
+  "connections": [
+    ["esp:TX", "$serialMonitor:RX", "", []],
+    ["esp:RX", "$serialMonitor:TX", "", []],
+
+    ["esp:3V3", "dht1:VCC", "red", []],
+    ["esp:GND.1", "dht1:GND", "black", []],
+    ["esp:15", "dht1:SDA", "green", []],
+
+    ["esp:3V3", "imu1:VCC", "red", []],
+    ["esp:GND.1", "imu1:GND", "black", []],
+    ["esp:21", "imu1:SDA", "blue", []],
+    ["esp:22", "imu1:SCL", "yellow", []],
+
+    ["esp:3V3", "bmp1:VCC", "red", []],
+    ["esp:GND.1", "bmp1:GND", "black", []],
+    ["esp:21", "bmp1:SDA", "blue", []],
+    ["esp:22", "bmp1:SCL", "yellow", []]
+  ],
+
+  "dependencies": {}
+}

@@ -1,0 +1,8 @@
+**/node_modules
+**/__pycache__
+**/.venv
+.venv
+frontend/dist
+wokwi/build
+backend/.env
+.git

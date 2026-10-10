@@ -1,0 +1,5 @@
+PubSubClient
+DHT sensor library
+Adafruit MPU6050
+Adafruit Unified Sensor
+Adafruit BMP085 Library

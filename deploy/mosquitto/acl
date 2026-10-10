@@ -1,0 +1,22 @@
+# Least privilege:
+#  - each edge device may ONLY publish its own telemetry/status topics
+#  - the backend may only READ them
+#  - the simulator (demo profile) may publish for machines 2-4
+
+# Backend ingestion service: read-only
+user backend
+topic read digitaltwin/factory/#
+
+# Physical / Wokwi device for machine 1
+user device-m01
+topic write digitaltwin/factory/machine01
+topic write digitaltwin/factory/machine01/status
+
+# Simulated fleet (docker compose --profile demo)
+user simulator
+topic write digitaltwin/factory/machine02
+topic write digitaltwin/factory/machine02/status
+topic write digitaltwin/factory/machine03
+topic write digitaltwin/factory/machine03/status
+topic write digitaltwin/factory/machine04
+topic write digitaltwin/factory/machine04/status
