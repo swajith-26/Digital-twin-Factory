@@ -158,7 +158,16 @@ app = FastAPI(
 # Any localhost / 127.0.0.1 port is allowed (Vite moves to 5174, 5175... when
 # 5173 is busy). Add other origins with CORS_ORIGINS="https://a.com,https://b.com".
 
-extra_origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "").split(",") if o.strip()]
+extra_origins = [
+    "https://digital-twin-factory-seven.vercel.app",
+    "https://digital-twin-factory-git-main-swajith-26s-projects.vercel.app",
+    "https://digital-twin-factory-i34vf9fvm-swajith-26s-projects.vercel.app",
+]
+extra_origins += [
+    o.strip()
+    for o in os.getenv("CORS_ORIGINS", "").split(",")
+    if o.strip()
+]
 
 app.add_middleware(
     CORSMiddleware,
